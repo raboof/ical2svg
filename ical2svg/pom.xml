@@ -4,7 +4,7 @@
 	<groupId>net.bzzt</groupId>
 	<artifactId>ical2svg</artifactId>
 	<packaging>jar</packaging>
-	<version>SNAPSHOT</version>
+	<version>0.1</version>
 	<name>ical2svg</name>
 	<url>http://maven.apache.org</url>
 	<build>
@@ -17,14 +17,25 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
 					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
+						<descriptorRef>jar-with-dependencies
+						</descriptorRef>
 					</descriptorRefs>
 					<archive>
 						<manifest>
-							<mainClass>net.bzzt.ical2svg.Ical2svg</mainClass>
+							<mainClass>net.bzzt.ical2svg.Ical2svg
+							</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id> <!-- this is used for inheritance merges -->
+						<phase>package</phase> <!-- append to the packaging phase. -->
+						<goals>
+							<goal>attached</goal> <!-- goals == mojos -->
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
