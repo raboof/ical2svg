@@ -11,6 +11,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
@@ -68,12 +69,13 @@ public class Ical2svg {
 	 * generates an svg for all shows for today 17:00-24:00
 	 * 
 	 * @param args
+	 * @throws IOException 
 	 * @throws ParseException
 	 * @throws ParserException
 	 * @throws IOException
 	 * @throws FileNotFoundException
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		OptionParser parser = new OptionParser();
 		OptionSpec<Float> widthOption = parser.accepts("width",
 				"Width of the 'blocks' part of the canvas").withRequiredArg()
@@ -88,7 +90,17 @@ public class Ical2svg {
 				"End-date and time (HH:mm or yyyy-MM-dd/HH:mm)")
 				.withRequiredArg().ofType(ConvertableDate.class);
 		OptionSpec<String> templateOption = parser.accepts("template", "Template SVG file").withRequiredArg().ofType(String.class);
-		OptionSet options = parser.parse(args);
+		OptionSet options;
+		try
+		{
+			options = parser.parse(args);
+		}
+		catch (OptionException e)
+		{
+			System.err.println(e.getMessage());
+			parser.printHelpOn(System.err);
+			return;
+		}
 
 		Template template = new Template(options.valueOf(templateOption));
 
