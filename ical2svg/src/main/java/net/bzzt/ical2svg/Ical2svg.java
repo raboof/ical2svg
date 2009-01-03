@@ -90,6 +90,7 @@ public class Ical2svg {
 				"End-date and time (HH:mm or yyyy-MM-dd/HH:mm)")
 				.withRequiredArg().ofType(ConvertableDate.class);
 		OptionSpec<String> templateOption = parser.accepts("template", "Template SVG file").withRequiredArg().ofType(String.class);
+		OptionSpec<String> fontfaceOption = parser.accepts("fontface", "Font face to use").withRequiredArg().ofType(String.class);
 		OptionSet options;
 		try
 		{
@@ -131,7 +132,8 @@ public class Ical2svg {
 
 		template.setLegendSize(option(options.valueOf(legendWidthOption), template.getLegendSize(), 60));
 		template.setCanvasSize(option(options.valueOf(widthOption), template.getCanvasSize(), Float.valueOf(860)));
-
+		template.setFontface(option(options.valueOf(fontfaceOption), template.getFontface()));
+		
 		BlockSchemaPainter painter = new BlockSchemaPainter(graphics, template,
 				new Interval(start, end));
 

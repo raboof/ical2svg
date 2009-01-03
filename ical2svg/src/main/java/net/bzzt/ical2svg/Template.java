@@ -56,6 +56,8 @@ public class Template {
 	 */
 	private Rectangle2D.Float heading = new Rectangle2D.Float(xmargin, canvas.y - rowHeight, legendSize, rowHeight);
 
+	private String fontface = "Arial";
+	
 	public float getInitialY() {
 		return canvas.y;
 	}
@@ -145,4 +147,14 @@ public class Template {
 	public Rectangle2D.Float getHeading() {
 		return heading;
 	}
+
+	public String getFontface() {
+		return fontface;
+	}
+
+	public void setFontface(String fontface) {
+		this.fontface = fontface;
+	}
+	
+	
 }
