@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import net.fortuna.ical4j.filter.Filter;
@@ -65,10 +66,13 @@ public class BlockSchemaPainter {
 			AffineTransform Tx = AffineTransform.getQuadrantRotateInstance(3);
 			canvas.setTransform(Tx);
 			String time = format.format(current.toDate());
-			TextLayout textLayout = new TextLayout(time, getFont(), getFontRenderContext());
+			//TextLayout textLayout = new TextLayout(time, getFont(), getFontRenderContext());
+			canvas.setFont(getFont());
+			
 			float xPosition = getX(current.toDate());
 			canvas.setColor(Color.BLACK);
-			textLayout.draw(canvas, -template.getInitialY() + 10, xPosition);
+			//textLayout.draw(canvas, -template.getInitialY() + 10, xPosition);
+			canvas.drawString(time, -template.getInitialY() + 10, xPosition);
 			canvas.setTransform(new AffineTransform());
 			
 			canvas.setColor(Color.GRAY);
@@ -77,8 +81,13 @@ public class BlockSchemaPainter {
 		}
 	}
 
-	private Font getFont() {
-		Font font = new Font("Dialog", Font.PLAIN, 7);
+	Font getFont()
+	{
+		return getFont(template.getFontface(), 7);
+	}
+	
+	static Font getFont(String fontFace, int size) {
+		Font font = new Font(fontFace, Font.PLAIN, size);
 		return font; 
 	}
 
@@ -88,6 +97,7 @@ public class BlockSchemaPainter {
 				interval.getStartMillis()), new DateTime(interval
 				.getEndMillis()))));
 
+		@SuppressWarnings("unchecked")
 		Collection<VEvent> events = filter.filter(calendar.getComponents(
 				Component.VEVENT));
 
@@ -107,10 +117,21 @@ public class BlockSchemaPainter {
 			}
 		}
 		
-		fitText(description, blocksleft - 2 * margin, template.getRowHeight()).draw(canvas, template.getXMargin() + margin, currenty + template.getRowHeight() / 2);
-		for (Collection<VEvent> row : CalendarUtil.removeOverlap(eventsWithoutBlacklist)) {
-			paintRow(row, currenty);
+		//fitText(description, blocksleft - 2 * margin, template.getRowHeight()).draw(canvas, template.getXMargin() + margin, currenty + template.getRowHeight() / 2);
+		drawFittedText(description, template.getXMargin(), currenty, blocksleft, template.getRowHeight(), margin);
+		
+		List<Collection<VEvent>> rows = CalendarUtil.removeOverlap(eventsWithoutBlacklist);
+		if (rows.isEmpty())
+		{
+			// one empty row
 			currenty += template.getRowHeight();
+		}
+		else
+		{
+			for (Collection<VEvent> row : rows) {
+				paintRow(row, currenty);
+				currenty += template.getRowHeight();
+			}
 		}
 	}
 
@@ -144,50 +165,84 @@ public class BlockSchemaPainter {
 		
 		int margin = 3;
 		
-		TextLayout textLayout = fitText(description, width - 2 * margin, height - 2 * margin);
-		
-		textLayout.draw(canvas, x + margin, y + new Double(0.5 * (height + textLayout.getBounds().getHeight())).intValue());
-		
+		drawFittedText(description, x, y, width, height, margin);
 	}
 
-	/** fit the text into the specified width and height */
-	private TextLayout fitText(String description, float width, float height) {
+	private void drawFittedText(String text, float x, float y, float width, float height, int margin)
+	{
+		// old:
+		//TextLayout textLayout = fitText(text, width - 2 * margin, height - 2 * margin);
+		//textLayout.draw(canvas, x + margin, y + new Double(0.5 * (height + textLayout.getBounds().getHeight())).intValue());
 		FontRenderContext frc = getFontRenderContext();
+		
 		int defaultsize = 6;
 		int minimumsize = 3;
 		
-		for (int size = defaultsize; size > minimumsize; size--)
+		float widthWithinMargin = width - 2 * margin;
+		float heightWithinMargin = height - 2 * margin;
+		Font font = getFittingFont(template.getFontface(), frc, defaultsize, minimumsize, text, widthWithinMargin, heightWithinMargin);
+		if (font == null)
 		{
-			Font font = new Font("Dialog", Font.PLAIN, size);
-			TextLayout layout = new TextLayout(description, font, frc);
+			// even with the minimum font size it doesn't fit - truncate.
+			// later perhaps add word wrapping here.
+			font = getFont(template.getFontface(), minimumsize);
+			text = getFittingDescription(frc, text, font, widthWithinMargin, heightWithinMargin);
+		}
+
+		if (text != null && !text.trim().equalsIgnoreCase(""))
+		{
+			canvas.setFont(font);
+			// unfortunately centering the text doesn't work reliably on openjdk
+			// for some reason: the calculation of the height of the bounding box
+			// seems to be off in openjdk, I get measurements similar to
+			// http://www.mail-archive.com/2d-dev@openjdk.java.net/msg00312.html
+
+			// as a workaround, we make a rough guess by looking at the font point size
+			
+			//TextLayout textLayout = new TextLayout(text, font, frc);
+			//int fontHeight = textLayout.getBounds().getHeight()
+			//float fontHeight = FontDesignMetrics.getMetrics(font).getAscent();
+			double fontHeight = font.getSize() * 0.7;
+			canvas.drawString(text, x + margin, y + new Double(0.5 * (height + fontHeight)).intValue());
+		}
+	}
+	
+	private static String getFittingDescription(FontRenderContext frc, String description, Font font,
+			float width, float height) {
+		for (int characters = description.length(); characters > 0; characters--)
+		{
+			String truncatedText = description.substring(0, characters) + "..";
+			TextLayout layout = new TextLayout(truncatedText, font, frc);
 			if (fits(layout, width, height))
 			{
-				return layout;
+				return truncatedText;
 			}
 		}
 		
-		// even with the minimum font size it doesn't fit - truncate.
-		// later perhaps add word wrapping here.
-		Font font = new Font("Dialog", Font.PLAIN, minimumsize);
-		for (int characters = description.length(); characters > 0; characters--)
-		{
-			TextLayout layout = new TextLayout(description.substring(0, characters) + "...", font, frc);
-			if (fits(layout, width, height))
-			{
-				return layout;
-			}
-		}
-
 		// didn't fit?!
-		return new TextLayout("?", font, frc);
+		return null;
 	}
 
-	private FontRenderContext getFontRenderContext() {
+	static Font getFittingFont(String fontFace, FontRenderContext frc, int defaultsize,
+			int minimumsize, String description, float width, float height) {
+		for (int size = defaultsize; size > minimumsize; size--)
+		{
+			Font font = getFont(fontFace, size);
+			TextLayout layout = new TextLayout(description, font, frc);
+			if (fits(layout, width, height))
+			{
+				return font;
+			}
+		}
+		return null;
+	}
+
+	static FontRenderContext getFontRenderContext() {
 		return new FontRenderContext(null, true, true);
 		
 	}
 
-	private boolean fits(TextLayout layout, float width, float height) {
+	private static boolean fits(TextLayout layout, float width, float height) {
 		Rectangle2D bounds = layout.getBounds();
 		return bounds.getWidth() < width && bounds.getHeight() < height;
 	}
