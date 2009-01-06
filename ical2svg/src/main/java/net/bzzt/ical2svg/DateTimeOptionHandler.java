@@ -1,5 +1,10 @@
 package net.bzzt.ical2svg;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import org.joda.time.Instant;
 import org.joda.time.ReadableInstant;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -22,8 +27,21 @@ public class DateTimeOptionHandler extends OptionHandler<ReadableInstant> {
 
 	@Override
 	public int parseArguments(Parameters arg0) throws CmdLineException {
-		String time = arg0.getParameter(0);
-		// TODO parse and use 'setter' to set the value
+		String date = arg0.getParameter(0);
+		Date today = new Date();
+		SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd/HH:mm");
+
+		if (date.length() < 6) {
+			SimpleDateFormat dateproducer = new SimpleDateFormat(
+					"yyyy-MM-dd/");
+			date = dateproducer.format(today) + date;
+		}
+		try {
+			setter.addValue(new Instant(parser.parse(date)));
+		} catch (ParseException e) {
+			throw new CmdLineException("Could not parse " + date + ": " + e.getMessage(), e);
+		}
+		
 		return 1;
 	}
 

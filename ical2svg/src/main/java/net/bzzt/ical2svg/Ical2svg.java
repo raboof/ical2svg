@@ -21,6 +21,7 @@ import org.apache.batik.svggen.SVGGraphics2D;
 import org.apache.batik.svggen.SVGGraphics2DIOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.joda.time.Days;
 import org.joda.time.Interval;
 import org.joda.time.MutableDateTime;
 import org.joda.time.ReadableInstant;
@@ -63,32 +64,6 @@ public class Ical2svg {
 	@Argument(handler=CalendarOptionHandler.class)
 	private List<Calendar> arguments = new ArrayList<Calendar>();
 	
-	public static class ConvertableDate extends MutableDateTime {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-
-		public ConvertableDate(Date date) {
-			super(date);
-		}
-
-		private static final Date today = new Date();
-
-		public static ConvertableDate valueOf(String date)
-				throws ParseException {
-			SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd/HH:mm");
-
-			if (date.length() < 6) {
-				SimpleDateFormat dateproducer = new SimpleDateFormat(
-						"yyyy-MM-dd/");
-				date = dateproducer.format(today) + date;
-			}
-
-			return new ConvertableDate(parser.parse(date));
-		}
-	}
-
 	/**
 	 * usage: 'ical2svg *.ics'
 	 * 
@@ -160,15 +135,19 @@ public class Ical2svg {
 			graphics = SVGGraphics2DFactory.newInstance();
 		}
 
+		if (end.isBefore(start))
+		{
+			end = new MutableDateTime(end);
+			LOG.warn("End is before start, adding days...");
+			int added = 0;
+			while (end.isBefore(start))
+			{
+				((MutableDateTime) end).add(Days.ONE);
+				added++;
+			}
+			LOG.warn("Added " + added + " days");
+		}
 		
-		// default: midnight after 'start'
-//		MutableDateTime defaultEnd = new MutableDateTime(start);
-//		defaultEnd.add(Days.ONE);
-//		defaultEnd.set(DateTimeFieldType.hourOfDay(), 0);
-//		defaultEnd.set(DateTimeFieldType.minuteOfHour(), 0);
-//		defaultEnd.set(DateTimeFieldType.secondOfMinute(), 0);
-//		ReadableInstant end = option(options.valueOf(toOption), defaultEnd);
-
 		template.setLegendSize(legendWidth);
 		template.setCanvasSize(canvasSize);
 		template.setFontface(fontface);
