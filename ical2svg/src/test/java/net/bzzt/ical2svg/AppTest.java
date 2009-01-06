@@ -1,5 +1,6 @@
 package net.bzzt.ical2svg;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -8,6 +9,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -159,7 +161,7 @@ public class AppTest extends TestCase {
 		Date start = format.parse("2008-12-21 17:00");
 		Date end = format.parse("2008-12-21 24:00");
 
-		Template template = new Template(null);
+		Template template = new Template((File) null);
 		template.setCanvasSize(Float.valueOf(860));
 		template.setLegendSize(60);
 		
@@ -168,14 +170,16 @@ public class AppTest extends TestCase {
 
 		painter.addBlacklist("Z@pp", "Nederland 3", "KETNET", "CANVAS");
     	
+		List<Calendar> calendars = new ArrayList<Calendar>();
 		for (String filename : new String[] { "nederland1.omroep.nl.ics",
 				"nederland2.omroep.nl.ics", "nederland3.omroep.nl.ics",
 				"rtl4.nl.ics", "rtl5.nl.ics", "net5.nl.ics", "sbs6.nl.ics",
 				"rtl7.nl.ics", "veronica.nl.ics", "nick.com.ics",
 				"omroepgelderland.nl.ics", "cartoonnetwork.nl.ics",
 				"bbc1.bbc.co.uk.ics", "bbc2.bbc.co.uk.ics" }) {
-			painter.paint(getTestCal(filename));
+			calendars.add(getTestCal(filename));
 		}
+		painter.paint(calendars, GroupBy.CALNAME);
 		painter.paintGrid();
 	}
 	

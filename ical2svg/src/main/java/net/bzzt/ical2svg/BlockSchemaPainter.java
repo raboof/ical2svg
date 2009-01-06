@@ -14,9 +14,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import net.fortuna.ical4j.filter.Filter;
 import net.fortuna.ical4j.filter.PeriodRule;
@@ -25,6 +28,7 @@ import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Period;
 import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.property.Location;
 
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.joda.time.Interval;
@@ -91,18 +95,6 @@ public class BlockSchemaPainter {
 		return font; 
 	}
 
-	/** filters events from the calendar and paints them */
-	public void paint(Calendar calendar) {
-		Filter filter = new Filter(new PeriodRule(new Period(new DateTime(
-				interval.getStartMillis()), new DateTime(interval
-				.getEndMillis()))));
-
-		@SuppressWarnings("unchecked")
-		Collection<VEvent> events = filter.filter(calendar.getComponents(
-				Component.VEVENT));
-
-		paint(calendar.getProperty("X-WR-CALNAME").getValue().trim(), events);
-	}
 
 	/** splits events, then paints them */
 	public void paint(String description, Collection<VEvent> events) {
@@ -170,6 +162,10 @@ public class BlockSchemaPainter {
 
 	private void drawFittedText(String text, float x, float y, float width, float height, int margin)
 	{
+		if (text == null || "".equals(text.trim()))
+		{
+			return;
+		}
 		// old:
 		//TextLayout textLayout = fitText(text, width - 2 * margin, height - 2 * margin);
 		//textLayout.draw(canvas, x + margin, y + new Double(0.5 * (height + textLayout.getBounds().getHeight())).intValue());
@@ -267,5 +263,52 @@ public class BlockSchemaPainter {
 
 	public float getCurrentY() {
 		return currenty;
+	}
+
+	@SuppressWarnings("unchecked")
+	public void paint(List<Calendar> arguments, GroupBy groupBy) {
+		Filter filter = new Filter(new PeriodRule(new Period(new DateTime(
+				interval.getStartMillis()), new DateTime(interval
+				.getEndMillis()))));
+
+		Map<String, Collection<VEvent>> eventsToPaint = new HashMap<String, Collection<VEvent>>();
+		for (Calendar calendar : arguments)
+		{
+			Collection<VEvent> events = filter.filter(calendar.getComponents(
+					Component.VEVENT));
+			if (groupBy == GroupBy.CALNAME)
+			{
+				eventsToPaint.put(calendar.getProperty("X-WR-CALNAME").getValue().trim(), events);
+			}
+			else if (groupBy == GroupBy.LOCATION)
+			{
+				for (VEvent event : events)
+				{
+					String key = "";
+					Location location = event.getLocation();
+					if (location != null && location.getValue() != null)
+					{
+						key = location.getValue().trim();
+					}
+					addEvent(eventsToPaint, key, event);
+				}
+			}
+		}
+		
+		for (Entry<String, Collection<VEvent>> entry : eventsToPaint.entrySet())
+		{
+			paint(entry.getKey(), entry.getValue());
+		}
+	}
+
+	private static void addEvent(Map<String, Collection<VEvent>> eventsToPaint,
+			String key, VEvent event) {
+		Collection<VEvent> collection = eventsToPaint.get(key);
+		if (collection == null)
+		{
+			collection = new ArrayList<VEvent>();
+			eventsToPaint.put(key, collection);
+		}
+		collection.add(event);
 	}
 }

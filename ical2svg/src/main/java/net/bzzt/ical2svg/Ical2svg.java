@@ -1,6 +1,6 @@
 package net.bzzt.ical2svg;
 
-import java.awt.Dimension;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -9,26 +9,25 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
-
-import joptsimple.OptionException;
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
-import joptsimple.OptionSpec;
+import java.util.List;
 
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.ParserException;
+import net.fortuna.ical4j.model.Calendar;
 
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.apache.batik.svggen.SVGGraphics2DIOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeFieldType;
-import org.joda.time.Days;
 import org.joda.time.Interval;
 import org.joda.time.MutableDateTime;
 import org.joda.time.ReadableInstant;
+import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 
 /**
  * Hello world!
@@ -37,6 +36,33 @@ import org.joda.time.ReadableInstant;
 public class Ical2svg {
 	private static final Log LOG = LogFactory.getLog(Ical2svg.class);
 
+	@Option(name="-template", usage="Template SVG file")
+	private File templateFile;
+	
+	@Option(name="-start",handler=DateTimeOptionHandler.class,usage="Start of period to show (yyyy-MM-dd/HH:mm or HH:mm)")
+	private ReadableInstant start = MutableDateTimes.forTimeToday(17,0,0);
+	
+	@Option(name="-end",handler=DateTimeOptionHandler.class,usage="End of period to show (yyyy-MM-dd/HH:mm or HH:mm)")
+	private ReadableInstant end = MutableDateTimes.forTimeTomorrow(0,0,0);
+	
+	@Option(name="-legendWidth",usage="Width of legend canvas")
+	private Integer legendWidth = 60; 
+
+	@Option(name="-canvasSize",usage="Width of block canvas")
+	private Float canvasSize = Float.valueOf(890);
+
+	@Option(name="-fontface",usage="Font face to use")
+	private String fontface = "Arial";
+
+	@Option(name="-h",usage="Print this help")
+	private boolean printUsage = false;
+	
+	@Option(name="-groupby",usage="Which property to group events by")
+	private GroupBy groupBy = GroupBy.CALNAME;
+	
+	@Argument(handler=CalendarOptionHandler.class)
+	private List<Calendar> arguments = new ArrayList<Calendar>();
+	
 	public static class ConvertableDate extends MutableDateTime {
 		/**
 		 * 
@@ -76,34 +102,53 @@ public class Ical2svg {
 	 * @throws FileNotFoundException
 	 */
 	public static void main(String[] args) throws IOException {
-		OptionParser parser = new OptionParser();
-		OptionSpec<Float> widthOption = parser.accepts("width",
-				"Width of the 'blocks' part of the canvas").withRequiredArg()
-				.ofType(Float.class);
-		OptionSpec<Integer> legendWidthOption = parser.accepts("legendwidth",
-				"Width of the 'legend' part of the canvas").withRequiredArg()
-				.ofType(Integer.class);
-		OptionSpec<ConvertableDate> fromOption = parser.accepts("from",
-				"Start-date and time (HH:mm or yyyy-MM-dd/HH:mm)")
-				.withRequiredArg().ofType(ConvertableDate.class);
-		OptionSpec<ConvertableDate> toOption = parser.accepts("to",
-				"End-date and time (HH:mm or yyyy-MM-dd/HH:mm)")
-				.withRequiredArg().ofType(ConvertableDate.class);
-		OptionSpec<String> templateOption = parser.accepts("template", "Template SVG file").withRequiredArg().ofType(String.class);
-		OptionSpec<String> fontfaceOption = parser.accepts("fontface", "Font face to use").withRequiredArg().ofType(String.class);
-		OptionSet options;
-		try
-		{
-			options = parser.parse(args);
+		new Ical2svg().run(args);
+	}
+	
+	public void run (String[] args)
+	{
+		CmdLineParser cmdLineParser = new CmdLineParser(this);
+		try {
+			cmdLineParser.parseArgument(args);
+		} catch (CmdLineException e1) {
+			LOG.error("Error parsing parameters: " + e1.getLocalizedMessage());
+			printUsage = true;
 		}
-		catch (OptionException e)
+		
+		if (printUsage)
 		{
-			System.err.println(e.getMessage());
-			parser.printHelpOn(System.err);
+			cmdLineParser.printUsage(System.err);
 			return;
 		}
+		
+//		OptionParser parser = new OptionParser();
+//		OptionSpec<Float> widthOption = parser.accepts("width",
+//				"Width of the 'blocks' part of the canvas").withRequiredArg()
+//				.ofType(Float.class);
+//		OptionSpec<Integer> legendWidthOption = parser.accepts("legendwidth",
+//				"Width of the 'legend' part of the canvas").withRequiredArg()
+//				.ofType(Integer.class);
+//		OptionSpec<ConvertableDate> fromOption = parser.accepts("from",
+//				"Start-date and time (HH:mm or yyyy-MM-dd/HH:mm)")
+//				.withRequiredArg().ofType(ConvertableDate.class);
+//		OptionSpec<ConvertableDate> toOption = parser.accepts("to",
+//				"End-date and time (HH:mm or yyyy-MM-dd/HH:mm)")
+//				.withRequiredArg().ofType(ConvertableDate.class);
+//		OptionSpec<String> templateOption = parser.accepts("template", "Template SVG file").withRequiredArg().ofType(String.class);
+//		OptionSpec<String> fontfaceOption = parser.accepts("fontface", "Font face to use").withRequiredArg().ofType(String.class);
+//		OptionSet options;
+//		try
+//		{
+//			options = parser.parse(args);
+//		}
+//		catch (OptionException e)
+//		{
+//			System.err.println(e.getMessage());
+//			parser.printHelpOn(System.err);
+//			return;
+//		}
 
-		Template template = new Template(options.valueOf(templateOption));
+		Template template = new Template(templateFile);
 
 		SVGGraphics2D graphics;
 		if (template.hasDocument())
@@ -115,42 +160,23 @@ public class Ical2svg {
 			graphics = SVGGraphics2DFactory.newInstance();
 		}
 
-		MutableDateTime defaultStart = new MutableDateTime();
-		defaultStart.set(DateTimeFieldType.hourOfDay(), 17);
-		defaultStart.set(DateTimeFieldType.minuteOfHour(), 0);
-		defaultStart.set(DateTimeFieldType.secondOfMinute(), 0);
-		ReadableInstant start = option(options.valueOf(fromOption),
-				defaultStart);
-
+		
 		// default: midnight after 'start'
-		MutableDateTime defaultEnd = new MutableDateTime(start);
-		defaultEnd.add(Days.ONE);
-		defaultEnd.set(DateTimeFieldType.hourOfDay(), 0);
-		defaultEnd.set(DateTimeFieldType.minuteOfHour(), 0);
-		defaultEnd.set(DateTimeFieldType.secondOfMinute(), 0);
-		ReadableInstant end = option(options.valueOf(toOption), defaultEnd);
+//		MutableDateTime defaultEnd = new MutableDateTime(start);
+//		defaultEnd.add(Days.ONE);
+//		defaultEnd.set(DateTimeFieldType.hourOfDay(), 0);
+//		defaultEnd.set(DateTimeFieldType.minuteOfHour(), 0);
+//		defaultEnd.set(DateTimeFieldType.secondOfMinute(), 0);
+//		ReadableInstant end = option(options.valueOf(toOption), defaultEnd);
 
-		template.setLegendSize(option(options.valueOf(legendWidthOption), template.getLegendSize(), 60));
-		template.setCanvasSize(option(options.valueOf(widthOption), template.getCanvasSize(), Float.valueOf(860)));
-		template.setFontface(option(options.valueOf(fontfaceOption), template.getFontface()));
+		template.setLegendSize(legendWidth);
+		template.setCanvasSize(canvasSize);
+		template.setFontface(fontface);
 		
 		BlockSchemaPainter painter = new BlockSchemaPainter(graphics, template,
 				new Interval(start, end));
 
-		CalendarBuilder builder = new CalendarBuilder();
-		for (String filename : options.nonOptionArguments()) {
-			try {
-				painter.paint(builder.build(new FileInputStream(filename)));
-			} catch (FileNotFoundException e) {
-				LOG.error("File " + filename + " not found");
-			} catch (IOException e) {
-				LOG.error("Error reading file " + filename + ": "
-						+ e.getMessage(), e);
-			} catch (ParserException e) {
-				LOG.error("Error parsing file " + filename + ": "
-						+ e.getMessage(), e);
-			}
-		}
+		painter.paint(arguments, groupBy);
 		painter.paintGrid();
 
 		graphics.setSVGCanvasSize(template.getSvgCanvasSize(painter.getCurrentY()));

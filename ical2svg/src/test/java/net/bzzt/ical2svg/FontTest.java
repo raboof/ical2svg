@@ -1,22 +1,14 @@
 package net.bzzt.ical2svg;
 
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
-import java.io.StringWriter;
 
-import net.bzzt.ical2svg.SVGGraphics2DFactory;
+import junit.framework.TestCase;
 
-import org.apache.batik.svggen.SVGGraphics2D;
 import org.apache.batik.svggen.SVGGraphics2DIOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import sun.awt.motif.X11FontMetrics;
-import sun.font.FontDesignMetrics;
-
-import junit.framework.TestCase;
 
 /**
  * Under openjdk, the calculation of boundingbox heights seems to be enourmously
@@ -55,7 +47,7 @@ public class FontTest extends TestCase {
 		Font font = new Font("Tahoma", Font.PLAIN, 11);
 		assertNotNull(font);
 
-		FontDesignMetrics.getMetrics(font).getHeight();
+//		FontDesignMetrics.getMetrics(font).getHeight();
 		
 		// openjdk reports '18.234375', while sun reports '10.734375'.
 		// This is roughly equivalent to the measurements at
