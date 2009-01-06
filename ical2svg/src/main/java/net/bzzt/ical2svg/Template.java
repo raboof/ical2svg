@@ -24,7 +24,7 @@ public class Template {
 	 * The template Document. All elements in this document should
 	 * later also be added to the final SVG.
 	 */
-	private final Document document;
+	private Document document;
 
 	/**
 	 * left and right page margins
@@ -64,14 +64,23 @@ public class Template {
 
 	public Template(String filename)
 	{
-		if (filename != null)
+		init(filename == null ? null : new File(filename));
+	}
+
+	public Template(File file) {
+		init(file);
+	}
+
+	private void init(File file)
+	{
+		if (file != null)
 		{
 			DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder builder;
 			Document templateDocument;
 			try {
 				builder = builderFactory.newDocumentBuilder();
-				templateDocument = builder.parse(new File(filename));
+				templateDocument = builder.parse(file);
 			} catch (Exception e) {
 				LOG.error("Error parsing template: " + e.getMessage(), e);
 				templateDocument = null;
@@ -101,6 +110,7 @@ public class Template {
 		}
 	}
 	
+
 	public boolean hasDocument()
 	{
 		return document != null;
