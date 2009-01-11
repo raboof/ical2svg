@@ -10,6 +10,8 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.parsers.ParserConfigurationException;
+
 import net.fortuna.ical4j.data.ParserException;
 import net.fortuna.ical4j.model.Calendar;
 
@@ -131,7 +133,12 @@ public class Ical2svg {
 		}
 		else
 		{
-			graphics = SVGGraphics2DFactory.newInstance();
+			try {
+				graphics = SVGGraphics2DFactory.newInstance();
+			} catch (ParserConfigurationException e) {
+				LOG.error("Error initializing SVGGraphics2D canvas: " + e.getMessage(), e);
+				return;
+			}
 		}
 
 		if (end.isBefore(start))

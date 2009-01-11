@@ -126,7 +126,7 @@ public class AppTest extends TestCase {
 	}
 
 	public void testGenerateBlocks() throws ParseException, IOException,
-			ParserException {
+			ParserException, ParserConfigurationException {
 		
 		SVGGraphics2D graphics = SVGGraphics2DFactory.newInstance();
 
