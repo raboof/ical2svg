@@ -25,8 +25,8 @@ public class FontTest extends TestCase {
 	@SuppressWarnings("unused")
 	private static final Log LOG = LogFactory.getLog(FontTest.class);
 	
-//	public void testOpenJdkText() throws SVGGraphics2DIOException
-//	{
+	public void testOpenJdkText() throws SVGGraphics2DIOException
+	{
 //		String text = "Test";
 //		
 //		//Font
@@ -38,7 +38,7 @@ public class FontTest extends TestCase {
 //		// sun seems to be (more) correct: in inkscape, 'Test' in Arial 7pt has
 //		// a height of 5.202
 //		assertTrue(new TextLayout(text, font, frc).getBounds().getHeight() < 5.3);
-//	}
+	}
 	
 //	public void testOpenJdkTextIsolated() throws SVGGraphics2DIOException
 //	{
