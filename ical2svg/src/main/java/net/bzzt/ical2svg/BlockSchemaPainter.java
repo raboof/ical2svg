@@ -266,7 +266,7 @@ public class BlockSchemaPainter {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void paint(List<Calendar> arguments, GroupBy groupBy) {
+	public void paint(List<Calendar> arguments, List<String> selection, GroupBy groupBy) {
 		Filter filter = new Filter(new PeriodRule(new Period(new DateTime(
 				interval.getStartMillis()), new DateTime(interval
 				.getEndMillis()))));
@@ -297,7 +297,10 @@ public class BlockSchemaPainter {
 		
 		for (Entry<String, Collection<VEvent>> entry : eventsToPaint.entrySet())
 		{
-			paint(entry.getKey(), entry.getValue());
+			if (selection == null || selection.contains(entry.getKey()))
+			{
+				paint(entry.getKey(), entry.getValue());
+			}
 		}
 	}
 

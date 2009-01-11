@@ -1,19 +1,15 @@
 package net.bzzt.ical2svg;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.ParserException;
 import net.fortuna.ical4j.model.Calendar;
 
@@ -60,6 +56,9 @@ public class Ical2svg {
 	
 	@Option(name="-groupby",usage="Which property to group events by")
 	private GroupBy groupBy = GroupBy.CALNAME;
+	
+	@Option(name="-select",usage="Optional row selection",handler=CsvOptionHandler.class)
+	private List<String> selection;
 	
 	@Argument(handler=CalendarOptionHandler.class)
 	private List<Calendar> arguments = new ArrayList<Calendar>();
@@ -155,7 +154,7 @@ public class Ical2svg {
 		BlockSchemaPainter painter = new BlockSchemaPainter(graphics, template,
 				new Interval(start, end));
 
-		painter.paint(arguments, groupBy);
+		painter.paint(arguments, selection, groupBy);
 		painter.paintGrid();
 
 		graphics.setSVGCanvasSize(template.getSvgCanvasSize(painter.getCurrentY()));
@@ -172,17 +171,5 @@ public class Ical2svg {
 		} catch (SVGGraphics2DIOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	/** returns the first non-null option */
-	private static <T> T option(T... options) {
-		for (T option : options)
-		{
-			if (option != null)
-			{
-				return option;
-			}
-		}
-		return null;
 	}
 }
