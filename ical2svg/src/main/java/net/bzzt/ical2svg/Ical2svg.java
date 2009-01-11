@@ -33,7 +33,7 @@ import org.kohsuke.args4j.Option;
 public class Ical2svg {
 	private static final Log LOG = LogFactory.getLog(Ical2svg.class);
 
-	@Option(name="-template", usage="Template SVG file")
+	@Option(name="-template")
 	private File templateFile;
 	
 	@Option(name="-start",handler=DateTimeOptionHandler.class,usage="Start of period to show (yyyy-MM-dd/HH:mm or HH:mm)")
@@ -57,7 +57,7 @@ public class Ical2svg {
 	@Option(name="-groupby",usage="Which property to group events by")
 	private GroupBy groupBy = GroupBy.LOCATION;
 	
-	@Option(name="-select",usage="Optional row selection",handler=CsvOptionHandler.class)
+	@Option(name="-select",usage="Group selection and ordering",handler=CsvOptionHandler.class)
 	private List<String> selection;
 	
 	@Argument(handler=CalendarOptionHandler.class)
