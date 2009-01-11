@@ -295,9 +295,19 @@ public class BlockSchemaPainter {
 			}
 		}
 		
-		for (Entry<String, Collection<VEvent>> entry : eventsToPaint.entrySet())
+		if (selection != null)
 		{
-			if (selection == null || selection.contains(entry.getKey()))
+			for (String caption : selection)
+			{
+				if (eventsToPaint.containsKey(caption))
+				{
+					paint(caption, eventsToPaint.get(caption));
+				}
+			}
+		}
+		else
+		{
+			for (Entry<String, Collection<VEvent>> entry : eventsToPaint.entrySet())
 			{
 				paint(entry.getKey(), entry.getValue());
 			}
