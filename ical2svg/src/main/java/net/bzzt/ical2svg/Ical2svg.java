@@ -55,7 +55,7 @@ public class Ical2svg {
 	private boolean printUsage = false;
 	
 	@Option(name="-groupby",usage="Which property to group events by")
-	private GroupBy groupBy = GroupBy.CALNAME;
+	private GroupBy groupBy = GroupBy.LOCATION;
 	
 	@Option(name="-select",usage="Optional row selection",handler=CsvOptionHandler.class)
 	private List<String> selection;
