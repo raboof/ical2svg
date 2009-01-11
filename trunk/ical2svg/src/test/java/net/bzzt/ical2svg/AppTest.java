@@ -1,7 +1,6 @@
 package net.bzzt.ical2svg;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,17 +13,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Result;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -40,14 +29,8 @@ import net.fortuna.ical4j.model.Period;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.DtStart;
 
-import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.joda.time.Interval;
-import org.w3c.dom.DOMImplementation;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
@@ -108,6 +91,7 @@ public class AppTest extends TestCase {
 
 		Filter filter = new Filter(new PeriodRule(new Period(start, end)));
 
+		@SuppressWarnings("unchecked")
 		Collection<VEvent> events = filter.filter(getTestCal().getComponents(
 				Component.VEVENT));
 		return events;
@@ -132,6 +116,7 @@ public class AppTest extends TestCase {
 	}
 	
 	public void testSplitOverlap() throws Exception {
+		@SuppressWarnings("unchecked")
 		List<Collection<VEvent>> result = CalendarUtil
 				.removeOverlap(getTestCal().getComponents(Component.VEVENT));
 		assertEquals(3, result.size());
@@ -179,7 +164,7 @@ public class AppTest extends TestCase {
 				"bbc1.bbc.co.uk.ics", "bbc2.bbc.co.uk.ics" }) {
 			calendars.add(getTestCal(filename));
 		}
-		painter.paint(calendars, GroupBy.CALNAME);
+		painter.paint(calendars, null, GroupBy.CALNAME);
 		painter.paintGrid();
 	}
 	
