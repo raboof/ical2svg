@@ -1,7 +1,9 @@
 #summary for each new version of ical2svg
 #labels Featured
 
-= 0.2 (not released yet) =
+= 0.2 =
+
+Released 2009/01/11
 
  * avoiding some API's that seem to be broken in OpenJDK
  * allow grouping by either calendarname (X-WG-CALNAME) or Location
